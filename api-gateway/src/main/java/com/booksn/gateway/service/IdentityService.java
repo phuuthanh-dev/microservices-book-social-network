@@ -19,7 +19,6 @@ public class IdentityService {
 
     public Mono<ApiResponse<IntrospectResponse>> introspect(String token) {
         // Call identity service to introspect token
-
         return identityClient.introspect(IntrospectRequest.builder().token(token).build());
     }
 }
