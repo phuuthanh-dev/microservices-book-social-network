@@ -2,6 +2,7 @@ package com.booksn.profile.service;
 
 import com.booksn.profile.mapper.UserProfileMapper;
 import com.booksn.profile.dto.response.UserProfileResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.booksn.profile.dto.request.ProfileCreationRequest;
@@ -37,6 +38,7 @@ public class UserProfileService {
         return userProfileMapper.toUserProfileResponse(userProfile);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserProfileResponse> getAllProfiles() {
         var profiles = userProfileRepository.findAll();
 

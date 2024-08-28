@@ -1,5 +1,6 @@
 package com.booksn.profile.controller;
 
+import com.booksn.profile.dto.ApiResponse;
 import com.booksn.profile.dto.request.ProfileCreationRequest;
 import com.booksn.profile.service.UserProfileService;
 import com.booksn.profile.dto.response.UserProfileResponse;
@@ -17,7 +18,9 @@ public class InternalUserProfileController {
     UserProfileService userProfileService;
 
     @PostMapping("/internal/users")
-    UserProfileResponse createProfile(@RequestBody ProfileCreationRequest request) {
-        return userProfileService.createProfile(request);
+    ApiResponse<UserProfileResponse> createProfile(@RequestBody ProfileCreationRequest request) {
+        return ApiResponse.<UserProfileResponse>builder()
+                .result(userProfileService.createProfile(request))
+                .build();
     }
 }

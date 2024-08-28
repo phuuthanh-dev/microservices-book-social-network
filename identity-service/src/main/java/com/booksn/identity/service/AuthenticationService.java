@@ -125,11 +125,6 @@ public class AuthenticationService {
     private String generateToken(User user) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
-//        Date issueTime = new Date();
-//        Date expiryTime = new Date(Instant.ofEpochMilli(issueTime.getTime())
-//                .plus(1, ChronoUnit.HOURS)
-//                .toEpochMilli());
-
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issuer("devteria.com")
