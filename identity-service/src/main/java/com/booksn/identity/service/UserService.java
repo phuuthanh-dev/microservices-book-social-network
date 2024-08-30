@@ -3,6 +3,7 @@ package com.booksn.identity.service;
 import java.util.HashSet;
 import java.util.List;
 
+import com.booksn.event.dto.NotificationEvent;
 import com.booksn.identity.constant.PredefinedRole;
 import com.booksn.identity.entity.Role;
 import com.booksn.identity.entity.User;
@@ -12,6 +13,7 @@ import com.booksn.identity.repository.RoleRepository;
 import com.booksn.identity.repository.UserRepository;
 import com.booksn.identity.mapper.ProfileMapper;
 import com.booksn.identity.repository.httpclient.ProfileClient;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,7 +41,7 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     ProfileClient profileClient;
     ProfileMapper profileMapper;
-    KafkaTemplate<String, String> kafkaTemplate;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
@@ -51,17 +53,33 @@ public class UserService {
         roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
 
         user.setRoles(roles);
-        user = userRepository.save(user);
+        user.setEmailVerified(false);
+
+        try {
+            user = userRepository.save(user);
+        } catch (DataIntegrityViolationException exception){
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
 
         var profileRequest = profileMapper.toProfileCreationRequest(request);
         profileRequest.setUserId(user.getId());
 
-        profileClient.createProfile(profileRequest);
+        var profile = profileClient.createProfile(profileRequest);
+
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .channel("EMAIL")
+                .recipient(request.getEmail())
+                .subject("Welcome to our system")
+                .body("Welcome " + request.getUsername() + " to our system")
+                .build();
 
         // Send message to Kafka
-        kafkaTemplate.send("user-creation", "Welcome " + user.getUsername() + " to our system");
+        kafkaTemplate.send("notification-delivery", notificationEvent);
 
-        return userMapper.toUserResponse(user);
+        var userCreationResponse = userMapper.toUserResponse(user);
+        userCreationResponse.setId(profile.getResult().getId());
+
+        return userCreationResponse;
     }
 
     public UserResponse getMyInfo() {

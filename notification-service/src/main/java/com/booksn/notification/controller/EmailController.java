@@ -27,9 +27,4 @@ public class EmailController {
                 .message("Email sent successfully")
                 .build();
     }
-
-    @KafkaListener(topics = "user-creation")
-    public void listenUserCreation(String message) {
-        log.info("Received message: " + message);
-    }
 }
