@@ -32,4 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 
-local.env
+./local.env
