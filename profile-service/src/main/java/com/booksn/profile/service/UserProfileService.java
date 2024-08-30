@@ -1,8 +1,11 @@
 package com.booksn.profile.service;
 
+import com.booksn.profile.exception.AppException;
+import com.booksn.profile.exception.ErrorCode;
 import com.booksn.profile.mapper.UserProfileMapper;
 import com.booksn.profile.dto.response.UserProfileResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.booksn.profile.dto.request.ProfileCreationRequest;
@@ -43,5 +46,15 @@ public class UserProfileService {
         var profiles = userProfileRepository.findAll();
 
         return profiles.stream().map(userProfileMapper::toUserProfileResponse).toList();
+    }
+
+    public UserProfileResponse getMyProfile() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+
+        var profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return userProfileMapper.toUserProfileResponse(profile);
     }
 }

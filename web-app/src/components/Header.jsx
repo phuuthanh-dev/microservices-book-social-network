@@ -12,6 +12,7 @@ import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { logOut } from "../services/authenticationService";
+import { useNavigate } from "react-router-dom";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -56,9 +57,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Header() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+  const navigate = useNavigate();
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -73,6 +74,11 @@ export default function Header() {
     handleMobileMenuClose();
   };
 
+  const handleOpenProfile = () => {
+    setAnchorEl(null);
+    navigate("/profile");
+  };
+
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
   };
@@ -80,7 +86,7 @@ export default function Header() {
   const handleLogout = (event) => {
     handleMenuClose();
     logOut();
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   const menuId = "primary-search-account-menu";
@@ -100,7 +106,7 @@ export default function Header() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+      <MenuItem onClick={handleOpenProfile}>Profile</MenuItem>
       <MenuItem onClick={handleMenuClose}>Settings</MenuItem>
       <MenuItem onClick={handleLogout}>Log Out</MenuItem>
     </Menu>
@@ -166,6 +172,7 @@ export default function Header() {
         color="inherit"
         aria-label="open drawer"
         sx={{ mr: 2 }}
+        onClick={() => navigate("/")}
       >
         <Box
           component={"img"}
