@@ -1,6 +1,6 @@
-package com.booksn.notification.repository;
+package com.booksn.profile.repository;
 
-import com.booksn.notification.entity.UserProfile;
+import com.booksn.profile.entity.UserProfile;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 

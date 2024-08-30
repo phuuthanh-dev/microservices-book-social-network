@@ -8,3 +8,11 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/notification-service
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      group-id: notification-group
+      # đọc message cũ nhất
+      auto-offset-reset: earliest
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer

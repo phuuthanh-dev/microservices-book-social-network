@@ -1,4 +1,4 @@
-package com.booksn.notification.configuration;
+package com.booksn.profile.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,8 +1,8 @@
-package com.booksn.notification.mapper;
+package com.booksn.profile.mapper;
 
-import com.booksn.notification.dto.request.ProfileCreationRequest;
-import com.booksn.notification.dto.response.UserProfileResponse;
-import com.booksn.notification.entity.UserProfile;
+import com.booksn.profile.dto.request.ProfileCreationRequest;
+import com.booksn.profile.dto.response.UserProfileResponse;
+import com.booksn.profile.entity.UserProfile;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

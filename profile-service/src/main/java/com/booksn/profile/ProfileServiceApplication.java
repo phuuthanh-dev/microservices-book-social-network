@@ -1,4 +1,4 @@
-package com.booksn.notification;
+package com.booksn.profile;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

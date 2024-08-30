@@ -1,9 +1,9 @@
-package com.booksn.notification.controller;
+package com.booksn.profile.controller;
 
-import com.booksn.notification.dto.ApiResponse;
-import com.booksn.notification.dto.request.ProfileCreationRequest;
-import com.booksn.notification.service.UserProfileService;
-import com.booksn.notification.dto.response.UserProfileResponse;
+import com.booksn.profile.dto.ApiResponse;
+import com.booksn.profile.dto.request.ProfileCreationRequest;
+import com.booksn.profile.service.UserProfileService;
+import com.booksn.profile.dto.response.UserProfileResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

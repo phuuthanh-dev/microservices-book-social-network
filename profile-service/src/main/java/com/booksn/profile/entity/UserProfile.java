@@ -1,4 +1,4 @@
-package com.booksn.notification.entity;
+package com.booksn.profile.entity;
 
 import java.time.LocalDate;
 

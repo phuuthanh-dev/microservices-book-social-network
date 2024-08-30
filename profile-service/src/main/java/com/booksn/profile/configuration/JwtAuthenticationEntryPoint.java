@@ -1,7 +1,7 @@
-package com.booksn.notification.configuration;
+package com.booksn.profile.configuration;
 
-import com.booksn.notification.dto.ApiResponse;
-import com.booksn.notification.exception.ErrorCode;
+import com.booksn.profile.dto.ApiResponse;
+import com.booksn.profile.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

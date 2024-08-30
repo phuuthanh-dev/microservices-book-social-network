@@ -1,4 +1,4 @@
-package com.booksn.notification.dto;
+package com.booksn.profile.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

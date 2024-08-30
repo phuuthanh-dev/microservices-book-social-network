@@ -1,11 +1,11 @@
 package com.booksn.notification.service;
 
 import com.booksn.notification.dto.request.EmailRequest;
-import com.booksn.notification.dto.request.SendEmailRequest;
-import com.booksn.notification.dto.request.Sender;
 import com.booksn.notification.dto.response.EmailResponse;
 import com.booksn.notification.exception.AppException;
 import com.booksn.notification.exception.ErrorCode;
+import com.booksn.notification.dto.request.SendEmailRequest;
+import com.booksn.notification.dto.request.Sender;
 import com.booksn.notification.repository.httpclient.EmailClient;
 import feign.FeignException;
 import lombok.AccessLevel;

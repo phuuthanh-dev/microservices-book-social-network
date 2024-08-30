@@ -1,4 +1,4 @@
-package com.booksn.notification.configuration;
+package com.booksn.profile.configuration;
 
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.security.oauth2.jwt.Jwt;

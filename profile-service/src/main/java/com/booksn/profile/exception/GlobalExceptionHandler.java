@@ -1,6 +1,6 @@
-package com.booksn.notification.exception;
+package com.booksn.profile.exception;
 
-import com.booksn.notification.dto.ApiResponse;
+import com.booksn.profile.dto.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -1,13 +1,13 @@
-package com.booksn.notification.service;
+package com.booksn.profile.service;
 
-import com.booksn.notification.mapper.UserProfileMapper;
-import com.booksn.notification.dto.response.UserProfileResponse;
+import com.booksn.profile.mapper.UserProfileMapper;
+import com.booksn.profile.dto.response.UserProfileResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import com.booksn.notification.dto.request.ProfileCreationRequest;
-import com.booksn.notification.entity.UserProfile;
-import com.booksn.notification.repository.UserProfileRepository;
+import com.booksn.profile.dto.request.ProfileCreationRequest;
+import com.booksn.profile.entity.UserProfile;
+import com.booksn.profile.repository.UserProfileRepository;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.booksn.notification.exception;
+package com.booksn.profile.exception;
 
 public class AppException extends RuntimeException {
 
