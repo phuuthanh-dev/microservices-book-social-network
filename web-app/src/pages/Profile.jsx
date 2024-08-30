@@ -14,6 +14,7 @@ export default function Profile() {
     try {
       const response = await getMyInfo();
       const data = response.data;
+      console.log(data.result);
 
       setUserDetails(data.result);
     } catch (error) {
@@ -59,7 +60,7 @@ export default function Profile() {
                 mb: "40px",
               }}
             >
-              Welcome back to Devteria, {userDetails.username} !
+              Welcome back to Book Social Network , {userDetails.username} !
             </Typography>
             <Box
               sx={{
@@ -76,7 +77,7 @@ export default function Profile() {
                   fontWeight: 600,
                 }}
               >
-                User Id
+                User Id:
               </Typography>
               <Typography
                 sx={{
@@ -101,7 +102,7 @@ export default function Profile() {
                   fontWeight: 600,
                 }}
               >
-                First Name
+                First Name:
               </Typography>
               <Typography
                 sx={{
@@ -126,7 +127,7 @@ export default function Profile() {
                   fontWeight: 600,
                 }}
               >
-                Last Name
+                Last Name:
               </Typography>
               <Typography
                 sx={{
@@ -151,7 +152,7 @@ export default function Profile() {
                   fontWeight: 600,
                 }}
               >
-                Date of birth
+                Date of birth:
               </Typography>
               <Typography
                 sx={{
