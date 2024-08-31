@@ -9,8 +9,8 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-
 import GoogleIcon from "@mui/icons-material/Google";
+import { OAuthConfig } from "../configurations/configuration";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { logIn, isAuthenticated } from "../services/authenticationService";
@@ -26,10 +26,16 @@ export default function Login() {
     setSnackBarOpen(false);
   };
 
-  const handleClick = () => {
-    alert(
-      "Please refer to Oauth2 series for this implemetation guidelines. https://www.youtube.com/playlist?list=PL2xsxmVse9IbweCh6QKqZhousfEWabSeq"
-    );
+  const handleContinueWithGoogle = () => {
+    const callbackUrl = OAuthConfig.REDIRECT_URI;
+    const authUrl = OAuthConfig.AUTH_URI;
+    const googleClientId = OAuthConfig.CLIENT_ID;
+
+    const targetUrl = `${authUrl}?redirect_uri=${encodeURIComponent(
+      callbackUrl
+    )}&response_type=code&client_id=${googleClientId}&scope=openid%20email%20profile`;
+
+    window.location.href = targetUrl;
   };
 
   useEffect(() => {
@@ -119,6 +125,7 @@ export default function Login() {
                 fullWidth
                 margin="normal"
                 value={password}
+                autoComplete="on"
                 onChange={(e) => setPassword(e.target.value)}
               />
               <Button
@@ -144,7 +151,7 @@ export default function Login() {
                 variant="contained"
                 color="secondary"
                 size="large"
-                onClick={handleClick}
+                onClick={handleContinueWithGoogle}
                 fullWidth
                 sx={{ gap: "10px" }}
               >

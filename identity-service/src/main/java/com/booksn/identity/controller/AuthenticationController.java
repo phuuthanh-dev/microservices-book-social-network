@@ -3,10 +3,7 @@ package com.booksn.identity.controller;
 import java.text.ParseException;
 
 import com.booksn.identity.dto.request.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.booksn.identity.dto.response.AuthenticationResponse;
 import com.booksn.identity.dto.response.IntrospectResponse;
@@ -23,6 +20,12 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
     AuthenticationService authenticationService;
+
+    @PostMapping("/outbound/authentication")
+    ApiResponse<AuthenticationResponse> authenticateOutbound(@RequestParam("code") String code) {
+        var result = authenticationService.authenticateOutbound(code);
+        return ApiResponse.<AuthenticationResponse>builder().result(result).build();
+    }
 
     @PostMapping("/token")
     ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
