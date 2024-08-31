@@ -1,7 +1,7 @@
 package com.booksn.identity.repository.httpclient;
 
 import com.booksn.identity.configuration.AuthenticationRequestInterceptor;
-import com.booksn.identity.dto.request.ApiResponse;
+import com.booksn.identity.dto.ApiResponse;
 import com.booksn.identity.dto.request.ProfileCreationRequest;
 import com.booksn.identity.dto.response.UserProfileResponse;
 import org.springframework.cloud.openfeign.FeignClient;

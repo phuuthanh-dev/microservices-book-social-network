@@ -2,11 +2,12 @@ package com.booksn.identity.controller;
 
 import java.util.List;
 
+import com.booksn.identity.dto.request.PasswordCreationRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
 
-import com.booksn.identity.dto.request.ApiResponse;
+import com.booksn.identity.dto.ApiResponse;
 import com.booksn.identity.dto.request.UserCreationRequest;
 import com.booksn.identity.dto.request.UserUpdateRequest;
 import com.booksn.identity.dto.response.UserResponse;
@@ -29,6 +30,14 @@ public class UserController {
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
+                .build();
+    }
+
+    @PostMapping("/create-password")
+    ApiResponse<Void> createPassword(@RequestBody @Valid PasswordCreationRequest request) {
+        userService.createPassword(request);
+        return ApiResponse.<Void>builder()
+                .message("Password has been created, you could use it to login")
                 .build();
     }
 

@@ -2,7 +2,7 @@ package com.booksn.identity.configuration;
 
 import java.io.IOException;
 
-import com.booksn.identity.dto.request.ApiResponse;
+import com.booksn.identity.dto.ApiResponse;
 import com.booksn.identity.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

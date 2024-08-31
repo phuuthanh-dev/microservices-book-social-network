@@ -1,4 +1,4 @@
-package com.booksn.identity.dto.request;
+package com.booksn.identity.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

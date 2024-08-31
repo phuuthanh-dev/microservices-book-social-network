@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.booksn.event.dto.NotificationEvent;
 import com.booksn.identity.constant.PredefinedRole;
+import com.booksn.identity.dto.request.PasswordCreationRequest;
 import com.booksn.identity.entity.Role;
 import com.booksn.identity.entity.User;
 import com.booksn.identity.exception.AppException;
@@ -29,6 +30,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -82,13 +84,30 @@ public class UserService {
         return userCreationResponse;
     }
 
+    public void createPassword(PasswordCreationRequest request) {
+        var context = SecurityContextHolder.getContext();
+        String id = context.getAuthentication().getName();
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (StringUtils.hasText((user.getPassword())))
+            throw new AppException(ErrorCode.PASSWORD_EXISTED);
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
+    }
+
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String id = context.getAuthentication().getName();
 
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return userMapper.toUserResponse(user);
+        var userResponse = userMapper.toUserResponse(user);
+        userResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));
+
+        return userResponse;
     }
 
     @PreAuthorize("hasRole('ADMIN')")

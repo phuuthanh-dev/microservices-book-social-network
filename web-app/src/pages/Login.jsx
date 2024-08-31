@@ -60,6 +60,7 @@ export default function Login() {
       const errorResponse = error.response.data;
       setSnackBarMessage(errorResponse.message);
       setSnackBarOpen(true);
+      setPassword("");
     }
   };
 

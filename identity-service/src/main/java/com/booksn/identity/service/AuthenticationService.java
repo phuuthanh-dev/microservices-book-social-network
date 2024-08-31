@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import com.booksn.event.dto.NotificationEvent;
 import com.booksn.identity.constant.PredefinedRole;
 import com.booksn.identity.dto.request.*;
 import com.booksn.identity.entity.InvalidatedToken;
@@ -12,11 +13,14 @@ import com.booksn.identity.entity.Role;
 import com.booksn.identity.entity.User;
 import com.booksn.identity.exception.AppException;
 import com.booksn.identity.exception.ErrorCode;
+import com.booksn.identity.mapper.ProfileMapper;
 import com.booksn.identity.repository.InvalidatedTokenRepository;
 import com.booksn.identity.repository.UserRepository;
 import com.booksn.identity.repository.httpclient.OutboundIdentityClient;
 import com.booksn.identity.repository.httpclient.OutboundUserClient;
+import com.booksn.identity.repository.httpclient.ProfileClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,6 +49,9 @@ public class AuthenticationService {
     InvalidatedTokenRepository invalidatedTokenRepository;
     OutboundIdentityClient outboundIdentityClient;
     OutboundUserClient outboundUserClient;
+    ProfileMapper profileMapper;
+    ProfileClient profileClient;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -97,22 +104,39 @@ public class AuthenticationService {
 
         // Get user info
         var userInfo = outboundUserClient.getUserInfo("json", response.getAccessToken());
-
         log.info("User info: {}", userInfo);
 
-        Set<Role> roles = new HashSet<>();
-        roles.add(Role.builder().name(PredefinedRole.USER_ROLE).build());
-
         // Onboard user if not exist
-        var user = userRepository.findByUsername(userInfo.getEmail()).orElseGet(
-                () -> userRepository.save(User.builder()
-                        .username(userInfo.getEmail())
-                        .email(userInfo.getEmail())
-                        .emailVerified(userInfo.isVerifiedEmail())
-                        .roles(roles)
-                        .build())
-                );
+        var user = userRepository.findByUsername(userInfo.getEmail()).orElseGet(() -> {
+                    var newUser = userRepository.save(User.builder()
+                            .username(userInfo.getEmail())
+                            .email(userInfo.getEmail())
+                            .emailVerified(userInfo.isVerifiedEmail())
+                            .roles(Set.of(Role.builder().name(PredefinedRole.USER_ROLE).build()))
+                            .build());
 
+                    var profileRequest = profileMapper.toProfileCreationRequest(UserCreationRequest.builder()
+                            .username(userInfo.getEmail())
+                            .email(userInfo.getEmail())
+                            .firstName(userInfo.getGivenName())
+                            .lastName(userInfo.getFamilyName())
+                            .build());
+                    profileRequest.setUserId(newUser.getId());
+                    profileClient.createProfile(profileRequest);
+
+                    // Send message to Kafka
+                    kafkaTemplate.send("notification-delivery", NotificationEvent.builder()
+                            .channel("EMAIL")
+                            .recipient(newUser.getEmail())
+                            .subject("Welcome to our system")
+                            .body("Welcome " + newUser.getUsername() + " to our system")
+                            .build());
+
+                    return newUser;
+                }
+        );
+
+        // Generate token
         String token = generateToken(user);
 
         return AuthenticationResponse.builder()
@@ -124,11 +148,11 @@ public class AuthenticationService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         var user = userRepository
                 .findByUsername(request.getUsername())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (!authenticated) throw new AppException(ErrorCode.INVALID_CREDENTIALS);
 
         var token = generateToken(user);
 

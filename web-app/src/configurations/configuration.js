@@ -11,5 +11,7 @@ export const OAuthConfig = {
 export const API = {
     LOGIN: "/identity/auth/token",
     MY_INFO: "/profile/users/my-profile",
+    MY_IDENTITY: "/identity/users/my-info",
+    CREATE_PASSWORD: "/identity/users/create-password",
     MY_POST: "/post/my-posts",
 };

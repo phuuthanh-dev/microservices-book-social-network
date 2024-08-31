@@ -15,5 +15,6 @@ public class UserResponse {
     String username;
     String email;
     boolean emailVerified;
+    boolean noPassword;
     Set<RoleResponse> roles;
 }
