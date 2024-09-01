@@ -4,7 +4,7 @@ export const CONFIG = {
 
 export const OAuthConfig = {
     CLIENT_ID: "1068097809138-iespprrehar52fbuabvsahs81mtnoqtc.apps.googleusercontent.com",
-    REDIRECT_URI: "http://localhost:3000/authenticate",
+    REDIRECT_URI: "http://localhost:3001/authenticate",
     AUTH_URI: "https://accounts.google.com/o/oauth2/auth",
 }
 
