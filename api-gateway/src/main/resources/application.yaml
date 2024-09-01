@@ -4,6 +4,10 @@ server:
 app:
   api-prefix: /api
 
+webclient:
+  identity-service:
+    base-url: http://localhost:8080/identity
+
 spring:
   application:
     name: api-gateway
@@ -34,3 +38,9 @@ spring:
             - Path=${app.api-prefix}/post/**
           filters:
             - StripPrefix=1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus

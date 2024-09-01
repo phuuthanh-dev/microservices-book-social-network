@@ -1,0 +1,29 @@
+global:
+  scrape_interval:     10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  - job_name: 'identity_service'
+    metrics_path: '/identity/actuator/prometheus'
+    static_configs:
+      - targets: ['identity-service:8080']
+        labels:
+          application: 'Identity Service Application'
+  - job_name: 'profile_service'
+    metrics_path: '/profile/actuator/prometheus'
+    static_configs:
+      - targets: ['profile-service:8080']
+        labels:
+          application: 'Profile Service Application'
+  - job_name: 'notification_service'
+    metrics_path: '/notification/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8080']
+        labels:
+          application: 'Notification Service Application'
+  - job_name: 'post_service'
+    metrics_path: '/post/actuator/prometheus'
+    static_configs:
+      - targets: ['post-service:8080']
+        labels:
+          application: 'Post Service Application'

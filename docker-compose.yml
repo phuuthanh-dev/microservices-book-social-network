@@ -1,6 +1,7 @@
 version: "3.8"
 services:
   kafka:
+    container_name: kafka
     image: 'bitnami/kafka:3.7.0'
     ports:
       - '9094:9094'
@@ -53,9 +54,9 @@ services:
     image: phuuthanh2003/api-gateway:latest
     container_name: api-gateway
     ports:
-      - "8181:8080"
+      - "8888:8080"
     expose:
-      - "8181"
+      - "8888"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
@@ -101,6 +102,35 @@ services:
       - kafka
       - mongo
       - api-gateway
+
+  ## Prometheus
+  prometheus:
+    image: prom/prometheus:v2.37.1
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - identity-service
+      - profile-service
+      - post-service
+      - notification-service
+
+  grafana:
+    image: grafana/grafana-oss:8.5.2
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=password
 
 volumes:
   mysql-data:

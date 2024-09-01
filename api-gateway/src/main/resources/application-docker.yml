@@ -4,6 +4,10 @@ server:
 app:
   api-prefix: /api
 
+webclient:
+  identity-service:
+    base-url: http://identity-service:8080/identity
+
 spring:
   application:
     name: api-gateway

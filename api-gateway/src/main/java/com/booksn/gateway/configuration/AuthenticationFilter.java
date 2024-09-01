@@ -57,7 +57,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             return unauthenticated(exchange.getResponse());
         }
 
-        String token = authHeader.getFirst().substring(7);
+        String authHeaderValue = authHeader.get(0);
+        if (!authHeaderValue.startsWith("Bearer ")) {
+            return unauthenticated(exchange.getResponse());
+        }
+        String token = authHeaderValue.substring(7);
 
         // Verify token
         // Delegate to identity service

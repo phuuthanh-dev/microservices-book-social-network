@@ -33,3 +33,9 @@ jwt:
 app:
   services:
     profile: http://localhost:8081/profile
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus

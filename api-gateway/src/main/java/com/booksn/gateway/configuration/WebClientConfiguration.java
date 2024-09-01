@@ -1,6 +1,7 @@
 package com.booksn.gateway.configuration;
 
 import com.booksn.gateway.repository.IdentityClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -14,10 +15,13 @@ import java.util.List;
 
 @Configuration
 public class WebClientConfiguration {
+    @Value("${webclient.identity-service.base-url}")
+    private String IDENTITY_SERVICE_URL;
+
     @Bean
     WebClient webClient() {
         return WebClient.builder()
-                .baseUrl("http://localhost:8080/identity")
+                .baseUrl(IDENTITY_SERVICE_URL)
                 .build();
     }
 
