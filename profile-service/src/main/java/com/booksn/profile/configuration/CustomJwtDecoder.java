@@ -1,12 +1,13 @@
 package com.booksn.profile.configuration;
 
-import com.nimbusds.jwt.SignedJWT;
+import java.text.ParseException;
+
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
+import com.nimbusds.jwt.SignedJWT;
 
 @Component
 public class CustomJwtDecoder implements JwtDecoder {
@@ -20,8 +21,7 @@ public class CustomJwtDecoder implements JwtDecoder {
                     signedJWT.getJWTClaimsSet().getIssueTime().toInstant(),
                     signedJWT.getJWTClaimsSet().getExpirationTime().toInstant(),
                     signedJWT.getHeader().toJSONObject(),
-                    signedJWT.getJWTClaimsSet().getClaims()
-            );
+                    signedJWT.getJWTClaimsSet().getClaims());
         } catch (ParseException e) {
             throw new JwtException("Invalid token");
         }

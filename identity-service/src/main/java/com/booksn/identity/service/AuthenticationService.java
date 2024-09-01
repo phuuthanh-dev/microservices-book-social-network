@@ -5,9 +5,18 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.booksn.event.dto.NotificationEvent;
 import com.booksn.identity.constant.PredefinedRole;
 import com.booksn.identity.dto.request.*;
+import com.booksn.identity.dto.response.AuthenticationResponse;
+import com.booksn.identity.dto.response.IntrospectResponse;
 import com.booksn.identity.entity.InvalidatedToken;
 import com.booksn.identity.entity.Role;
 import com.booksn.identity.entity.User;
@@ -19,15 +28,6 @@ import com.booksn.identity.repository.UserRepository;
 import com.booksn.identity.repository.httpclient.OutboundIdentityClient;
 import com.booksn.identity.repository.httpclient.OutboundUserClient;
 import com.booksn.identity.repository.httpclient.ProfileClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import com.booksn.identity.dto.response.AuthenticationResponse;
-import com.booksn.identity.dto.response.IntrospectResponse;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -108,40 +108,39 @@ public class AuthenticationService {
 
         // Onboard user if not exist
         var user = userRepository.findByUsername(userInfo.getEmail()).orElseGet(() -> {
-                    var newUser = userRepository.save(User.builder()
-                            .username(userInfo.getEmail())
-                            .email(userInfo.getEmail())
-                            .emailVerified(userInfo.isVerifiedEmail())
-                            .roles(Set.of(Role.builder().name(PredefinedRole.USER_ROLE).build()))
-                            .build());
+            var newUser = userRepository.save(User.builder()
+                    .username(userInfo.getEmail())
+                    .email(userInfo.getEmail())
+                    .emailVerified(userInfo.isVerifiedEmail())
+                    .roles(Set.of(Role.builder().name(PredefinedRole.USER_ROLE).build()))
+                    .build());
 
-                    var profileRequest = profileMapper.toProfileCreationRequest(UserCreationRequest.builder()
-                            .username(userInfo.getEmail())
-                            .email(userInfo.getEmail())
-                            .firstName(userInfo.getGivenName())
-                            .lastName(userInfo.getFamilyName())
-                            .build());
-                    profileRequest.setUserId(newUser.getId());
-                    profileClient.createProfile(profileRequest);
+            var profileRequest = profileMapper.toProfileCreationRequest(UserCreationRequest.builder()
+                    .username(userInfo.getEmail())
+                    .email(userInfo.getEmail())
+                    .firstName(userInfo.getGivenName())
+                    .lastName(userInfo.getFamilyName())
+                    .build());
+            profileRequest.setUserId(newUser.getId());
+            profileClient.createProfile(profileRequest);
 
-                    // Send message to Kafka
-                    kafkaTemplate.send("notification-delivery", NotificationEvent.builder()
+            // Send message to Kafka
+            kafkaTemplate.send(
+                    "notification-delivery",
+                    NotificationEvent.builder()
                             .channel("EMAIL")
                             .recipient(newUser.getEmail())
                             .subject("Welcome to our system")
                             .body("Welcome " + newUser.getUsername() + " to our system")
                             .build());
 
-                    return newUser;
-                }
-        );
+            return newUser;
+        });
 
         // Generate token
         String token = generateToken(user);
 
-        return AuthenticationResponse.builder()
-                .token(token)
-                .build();
+        return AuthenticationResponse.builder().token(token).build();
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -188,8 +187,8 @@ public class AuthenticationService {
 
         var username = signedJWT.getJWTClaimsSet().getSubject();
 
-        var user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+        var user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
         var token = generateToken(user);
 
@@ -204,8 +203,7 @@ public class AuthenticationService {
                 .issuer("devteria.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()
-                ))
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
@@ -229,8 +227,12 @@ public class AuthenticationService {
         SignedJWT signedJWT = SignedJWT.parse(token);
 
         Date expiryTime = (isRefresh)
-                ? new Date(signedJWT.getJWTClaimsSet().getIssueTime()
-                .toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli())
+                ? new Date(signedJWT
+                        .getJWTClaimsSet()
+                        .getIssueTime()
+                        .toInstant()
+                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                        .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         var verified = signedJWT.verify(verifier);
@@ -256,6 +258,5 @@ public class AuthenticationService {
         return stringJoiner.toString();
     }
 
-    private record TokenInfo(String token, Date expiryDate) {
-    }
+    private record TokenInfo(String token, Date expiryDate) {}
 }

@@ -1,23 +1,23 @@
 package com.booksn.profile.service;
 
-import com.booksn.profile.exception.AppException;
-import com.booksn.profile.exception.ErrorCode;
-import com.booksn.profile.mapper.UserProfileMapper;
-import com.booksn.profile.dto.response.UserProfileResponse;
+import java.util.List;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.booksn.profile.dto.request.ProfileCreationRequest;
+import com.booksn.profile.dto.response.UserProfileResponse;
 import com.booksn.profile.entity.UserProfile;
+import com.booksn.profile.exception.AppException;
+import com.booksn.profile.exception.ErrorCode;
+import com.booksn.profile.mapper.UserProfileMapper;
 import com.booksn.profile.repository.UserProfileRepository;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +52,8 @@ public class UserProfileService {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
 
-        var profile = userProfileRepository.findByUserId(userId)
+        var profile = userProfileRepository
+                .findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return userProfileMapper.toUserProfileResponse(profile);

@@ -1,6 +1,5 @@
 package com.booksn.identity.mapper;
 
-import com.booksn.identity.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -8,6 +7,7 @@ import org.mapstruct.MappingTarget;
 import com.booksn.identity.dto.request.UserCreationRequest;
 import com.booksn.identity.dto.request.UserUpdateRequest;
 import com.booksn.identity.dto.response.UserResponse;
+import com.booksn.identity.entity.User;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {

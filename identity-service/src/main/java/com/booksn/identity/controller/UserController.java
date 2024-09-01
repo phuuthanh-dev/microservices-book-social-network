@@ -2,12 +2,12 @@ package com.booksn.identity.controller;
 
 import java.util.List;
 
-import com.booksn.identity.dto.request.PasswordCreationRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
 
 import com.booksn.identity.dto.ApiResponse;
+import com.booksn.identity.dto.request.PasswordCreationRequest;
 import com.booksn.identity.dto.request.UserCreationRequest;
 import com.booksn.identity.dto.request.UserUpdateRequest;
 import com.booksn.identity.dto.response.UserResponse;

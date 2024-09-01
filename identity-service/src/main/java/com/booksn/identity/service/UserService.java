@@ -3,34 +3,34 @@ package com.booksn.identity.service;
 import java.util.HashSet;
 import java.util.List;
 
-import com.booksn.event.dto.NotificationEvent;
-import com.booksn.identity.constant.PredefinedRole;
-import com.booksn.identity.dto.request.PasswordCreationRequest;
-import com.booksn.identity.entity.Role;
-import com.booksn.identity.entity.User;
-import com.booksn.identity.exception.AppException;
-import com.booksn.identity.exception.ErrorCode;
-import com.booksn.identity.repository.RoleRepository;
-import com.booksn.identity.repository.UserRepository;
-import com.booksn.identity.mapper.ProfileMapper;
-import com.booksn.identity.repository.httpclient.ProfileClient;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import com.booksn.event.dto.NotificationEvent;
+import com.booksn.identity.constant.PredefinedRole;
+import com.booksn.identity.dto.request.PasswordCreationRequest;
 import com.booksn.identity.dto.request.UserCreationRequest;
 import com.booksn.identity.dto.request.UserUpdateRequest;
 import com.booksn.identity.dto.response.UserResponse;
+import com.booksn.identity.entity.Role;
+import com.booksn.identity.entity.User;
+import com.booksn.identity.exception.AppException;
+import com.booksn.identity.exception.ErrorCode;
+import com.booksn.identity.mapper.ProfileMapper;
 import com.booksn.identity.mapper.UserMapper;
+import com.booksn.identity.repository.RoleRepository;
+import com.booksn.identity.repository.UserRepository;
+import com.booksn.identity.repository.httpclient.ProfileClient;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +59,7 @@ public class UserService {
 
         try {
             user = userRepository.save(user);
-        } catch (DataIntegrityViolationException exception){
+        } catch (DataIntegrityViolationException exception) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
@@ -88,11 +88,9 @@ public class UserService {
         var context = SecurityContextHolder.getContext();
         String id = context.getAuthentication().getName();
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (StringUtils.hasText((user.getPassword())))
-            throw new AppException(ErrorCode.PASSWORD_EXISTED);
+        if (StringUtils.hasText((user.getPassword()))) throw new AppException(ErrorCode.PASSWORD_EXISTED);
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);

@@ -2,8 +2,6 @@ package com.booksn.identity.configuration;
 
 import java.io.IOException;
 
-import com.booksn.identity.dto.ApiResponse;
-import com.booksn.identity.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -11,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
+import com.booksn.identity.dto.ApiResponse;
+import com.booksn.identity.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

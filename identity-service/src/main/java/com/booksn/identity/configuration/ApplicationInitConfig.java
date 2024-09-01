@@ -2,17 +2,17 @@ package com.booksn.identity.configuration;
 
 import java.util.HashSet;
 
-import com.booksn.identity.constant.PredefinedRole;
-import com.booksn.identity.repository.UserRepository;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.booksn.identity.constant.PredefinedRole;
 import com.booksn.identity.entity.Role;
 import com.booksn.identity.entity.User;
 import com.booksn.identity.repository.RoleRepository;
+import com.booksn.identity.repository.UserRepository;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

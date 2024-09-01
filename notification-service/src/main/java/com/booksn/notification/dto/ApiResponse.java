@@ -1,6 +1,7 @@
 package com.booksn.notification.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

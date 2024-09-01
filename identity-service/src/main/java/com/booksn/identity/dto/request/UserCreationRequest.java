@@ -2,10 +2,11 @@ package com.booksn.identity.dto.request;
 
 import java.time.LocalDate;
 
-import com.booksn.identity.validator.DobConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import com.booksn.identity.validator.DobConstraint;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -33,6 +34,4 @@ public class UserCreationRequest {
     LocalDate dob;
 
     String city;
-
-
 }

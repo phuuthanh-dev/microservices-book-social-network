@@ -1,15 +1,17 @@
 package com.booksn.profile.controller;
 
-import com.booksn.profile.dto.ApiResponse;
-import com.booksn.profile.dto.request.ProfileCreationRequest;
-import com.booksn.profile.service.UserProfileService;
-import com.booksn.profile.dto.response.UserProfileResponse;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.booksn.profile.dto.ApiResponse;
+import com.booksn.profile.dto.request.ProfileCreationRequest;
+import com.booksn.profile.dto.response.UserProfileResponse;
+import com.booksn.profile.service.UserProfileService;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequiredArgsConstructor

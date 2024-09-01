@@ -1,15 +1,16 @@
 package com.booksn.profile.controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.booksn.profile.dto.ApiResponse;
 import com.booksn.profile.dto.response.UserProfileResponse;
 import com.booksn.profile.service.UserProfileService;
-import org.springframework.web.bind.annotation.*;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor

@@ -1,0 +1,10 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /post
+spring:
+  application:
+    name: post-service
+  data:
+    mongodb:
+      uri: mongodb://mongo:27017/post-service

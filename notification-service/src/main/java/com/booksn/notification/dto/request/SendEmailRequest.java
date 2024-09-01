@@ -1,4 +1,5 @@
 package com.booksn.notification.dto.request;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

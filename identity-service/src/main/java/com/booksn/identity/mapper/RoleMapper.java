@@ -1,11 +1,11 @@
 package com.booksn.identity.mapper;
 
-import com.booksn.identity.entity.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.booksn.identity.dto.request.RoleRequest;
 import com.booksn.identity.dto.response.RoleResponse;
+import com.booksn.identity.entity.Role;
 
 @Mapper(componentModel = "spring")
 public interface RoleMapper {
