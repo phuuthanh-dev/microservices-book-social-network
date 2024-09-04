@@ -4,6 +4,8 @@ server:
     context-path: /identity
 
 spring:
+  application:
+      name: "identity-service"
   datasource:
     url: jdbc:mysql://mysql:3306/identity_service
     driverClassName: com.mysql.cj.jdbc.Driver
@@ -30,6 +32,33 @@ jwt:
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
 
-app:
-  services:
-    profile: http://profile-service:8080/profile
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+endpoints:
+  shutdown:
+    enabled: true
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://eureka-server:8070/eureka/
+
+info:
+  app:
+    name: "identity-service"
+    description: "Identity Service Application"
+    version: "1.0.0"
