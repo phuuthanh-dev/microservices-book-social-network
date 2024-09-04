@@ -4,7 +4,38 @@ server:
     context-path: /post
 spring:
   application:
-    name: post-service
+    name: "post-service"
   data:
     mongodb:
       uri: mongodb://mongo:27017/post-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+endpoints:
+  shutdown:
+    enabled: true
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://eureka-server:8070/eureka/
+
+info:
+  app:
+    name: "post-service"
+    description: "Post Service Application"
+    version: "1.0.0"

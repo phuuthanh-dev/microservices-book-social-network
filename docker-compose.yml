@@ -26,7 +26,7 @@ services:
     expose:
       - "27017"
     volumes:
-      - ./mongo-data:/data/db
+      - mongo-data:/data/db
     networks:
       - bsn-network
 
@@ -58,6 +58,22 @@ services:
     networks:
       - bsn-network
 
+  eureka-server:
+    image: "phuuthanh2003/eureka-server:latest"
+    container_name: eureka-server
+    ports:
+      - "8070:8070"
+    environment:
+      - SPRING_APPLICATION_NAME=eureka-server
+    healthcheck:
+      test: "curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bsn-network
+
   api-gateway:
     image: phuuthanh2003/api-gateway:latest
     container_name: api-gateway
@@ -67,10 +83,19 @@ services:
       - "8888"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=api-gateway
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    depends_on:
+      - eureka-server
     networks:
       - bsn-network
-
 
   identity-service:
     container_name: identity-service
@@ -78,6 +103,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/identity_service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
       - mysql
       - api-gateway
@@ -92,6 +118,7 @@ services:
       - SPRING_NEO4J_URI=bolt://neo4j:7687
       - SPRING_NEO4J_AUTHENTICATION_USERNAME=neo4j
       - SPRING_NEO4J_AUTHENTICATION_PASSWORD=12345678
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
       - neo4j
       - identity-service
@@ -104,6 +131,7 @@ services:
     image: phuuthanh2003/post-service:latest
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
       - mongo
       - api-gateway
@@ -115,6 +143,7 @@ services:
     image: phuuthanh2003/notification-service:latest
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
       - kafka
       - mongo
@@ -162,3 +191,4 @@ networks:
 volumes:
   mysql-data:
   neo4j-data:
+  mongo-data:

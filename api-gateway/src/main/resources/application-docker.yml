@@ -10,31 +10,58 @@ webclient:
 
 spring:
   application:
-    name: api-gateway
+    name: "api-gateway"
   cloud:
     gateway:
       routes:
         - id: identity-service
-          uri: http://identity-service:8080
+          uri: lb://identity-service
           predicates:
             - Path=${app.api-prefix}/identity/**
           filters:
             - StripPrefix=1
         - id: profile-service
-          uri: http://profile-service:8080
+          uri: lb://profile-service
           predicates:
             - Path=${app.api-prefix}/profile/users/**
           filters:
             - StripPrefix=1
         - id: notification-service
-          uri: http://notification-service:8080
+          uri: lb://notification-service
           predicates:
             - Path=${app.api-prefix}/notification/**
           filters:
             - StripPrefix=1
         - id: post_service
-          uri: http://post-service:8080
+          uri: lb://post-service
           predicates:
             - Path=${app.api-prefix}/post/**
           filters:
             - StripPrefix=1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://eureka-server:8070/eureka/
+
+info:
+  app:
+    name: "api-gateway"
+    description: "API Gateway Application"
+    version: "1.0.0"
