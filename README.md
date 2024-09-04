@@ -1,6 +1,6 @@
-# YAS: Yet Another Shop
+# BookSN: Book Social Network
 
-YAS is a pet project aim to practice building a typical microservice application in Java
+BookSN is a social network for book lovers. It allows users to share their favorite books, rate them, and comment on them. It also provides a recommendation system based on user preferences.
 
 ## Tentative technologies and frameworks
 

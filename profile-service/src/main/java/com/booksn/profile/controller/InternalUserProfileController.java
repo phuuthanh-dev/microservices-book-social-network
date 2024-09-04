@@ -2,6 +2,7 @@ package com.booksn.profile.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.booksn.profile.dto.ApiResponse;
@@ -16,10 +17,11 @@ import lombok.experimental.FieldDefaults;
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequestMapping("/internal")
 public class InternalUserProfileController {
     UserProfileService userProfileService;
 
-    @PostMapping("/internal/users")
+    @PostMapping("/users")
     ApiResponse<UserProfileResponse> createProfile(@RequestBody ProfileCreationRequest request) {
         return ApiResponse.<UserProfileResponse>builder()
                 .result(userProfileService.createProfile(request))

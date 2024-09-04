@@ -13,6 +13,8 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    networks:
+      - bsn-network
 
   ## Mongo Docker Compose Config
   mongo:
@@ -25,6 +27,8 @@ services:
       - "27017"
     volumes:
       - ./mongo-data:/data/db
+    networks:
+      - bsn-network
 
   ## MySQL Docker Compose Config
   mysql:
@@ -37,6 +41,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - bsn-network
 
   ## Neo4j Docker Compose Config
   neo4j:
@@ -49,6 +55,8 @@ services:
       - "7687:7687"  # Bolt protocol
     volumes:
       - neo4j-data:/var/lib/neo4j/data
+    networks:
+      - bsn-network
 
   api-gateway:
     image: phuuthanh2003/api-gateway:latest
@@ -60,6 +68,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+    networks:
+      - bsn-network
+
 
   identity-service:
     container_name: identity-service
@@ -70,6 +81,8 @@ services:
     depends_on:
       - mysql
       - api-gateway
+    networks:
+      - bsn-network
 
   profile-service:
     container_name: profile-service
@@ -83,6 +96,8 @@ services:
       - neo4j
       - identity-service
       - api-gateway
+    networks:
+      - bsn-network
 
   post-service:
     container_name: post-service
@@ -92,6 +107,8 @@ services:
     depends_on:
       - mongo
       - api-gateway
+    networks:
+      - bsn-network
 
   notification-service:
     container_name: notification-service
@@ -102,6 +119,8 @@ services:
       - kafka
       - mongo
       - api-gateway
+    networks:
+      - bsn-network
 
   ## Prometheus
   prometheus:
@@ -111,12 +130,14 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - identity-service
       - profile-service
       - post-service
       - notification-service
+    networks:
+      - bsn-network
 
   grafana:
     image: grafana/grafana-oss:8.5.2
@@ -131,6 +152,12 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=password
+    networks:
+      - bsn-network
+
+networks:
+  bsn-network:
+    driver: bridge
 
 volumes:
   mysql-data:
