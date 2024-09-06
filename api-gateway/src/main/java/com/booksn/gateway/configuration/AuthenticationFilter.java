@@ -20,6 +20,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -34,11 +35,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     ObjectMapper objectMapper;
 
     @NonFinal
-    private String[] publicEndpoints = {
-            "/identity/auth/.*",
-            "/identity/users/registration",
-            "/notification/email/send"
-    };
+    private String[] publicEndpoints = {"/identity/auth/.*", "/identity/users/registration", "/notification/email/send"};
 
     @Value("${app.api-prefix}")
     @NonFinal
@@ -71,7 +68,14 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             }
             return chain.filter(exchange);
 
-        }).onErrorResume(throwable -> unauthenticated(exchange.getResponse()));
+        }).onErrorResume(throwable -> {
+            if (throwable instanceof ResponseStatusException responseStatusException &&
+                    responseStatusException.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
+                return timeoutResponse(exchange.getResponse());
+            } else {
+                return unauthenticated(exchange.getResponse());
+            }
+        });
     }
 
     @Override
@@ -89,10 +93,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     Mono<Void> unauthenticated(ServerHttpResponse response) {
-        ApiResponse<?> apiResponse = ApiResponse.builder()
-                .code(HttpStatus.UNAUTHORIZED.value())
-                .message("Unauthenticated")
-                .build();
+        ApiResponse<?> apiResponse = ApiResponse.builder().code(HttpStatus.UNAUTHORIZED.value()).message("Unauthenticated").build();
         String body = null;
         try {
             body = objectMapper.writeValueAsString(apiResponse);
@@ -100,6 +101,22 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             throw new RuntimeException(e);
         }
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
+        response.getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+
+        return response.writeWith(Mono.just(response.bufferFactory().wrap(body.getBytes())));
+    }
+
+    Mono<Void> timeoutResponse(ServerHttpResponse response) {
+        ApiResponse<?> apiResponse = ApiResponse.builder().code(HttpStatus.REQUEST_TIMEOUT.value()).message("Request timed out. Please try again.").build();
+
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(apiResponse);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        response.setStatusCode(HttpStatus.REQUEST_TIMEOUT);
         response.getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         return response.writeWith(Mono.just(response.bufferFactory().wrap(body.getBytes())));

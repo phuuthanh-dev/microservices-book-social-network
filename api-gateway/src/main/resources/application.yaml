@@ -13,31 +13,13 @@ spring:
     name: "api-gateway"
   cloud:
     gateway:
-      routes:
-        - id: identity-service
-          uri: lb://IDENTITY-SERVICE
-          predicates:
-            - Path=${app.api-prefix}/identity/**
-          filters:
-            - StripPrefix=1
-        - id: profile-service
-          uri: lb://PROFILE-SERVICE
-          predicates:
-            - Path=${app.api-prefix}/profile/users/**
-          filters:
-            - StripPrefix=1
-        - id: notification-service
-          uri: lb://NOTIFICATION-SERVICE
-          predicates:
-            - Path=${app.api-prefix}/notification/**
-          filters:
-            - StripPrefix=1
-        - id: post-service
-          uri: lb://POST-SERVICE
-          predicates:
-            - Path=${app.api-prefix}/post/**
-          filters:
-            - StripPrefix=1
+      discovery:
+        locator:
+          enabled: false
+          lowerCaseServiceId: true
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 2s
 
 management:
   endpoints:
@@ -45,15 +27,11 @@ management:
       exposure:
         include: "*"
   endpoint:
-    shutdown:
+    gateway:
       enabled: true
   info:
     env:
       enabled: true
-
-endpoints:
-  shutdown:
-    enabled: true
 
 eureka:
   instance:
@@ -69,3 +47,11 @@ info:
     name: "api-gateway"
     description: "API Gateway Application"
     version: "1.0.0"
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 2
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000

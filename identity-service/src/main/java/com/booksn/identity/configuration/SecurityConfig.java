@@ -26,7 +26,7 @@ public class SecurityConfig {
         "/auth/refresh",
         "/auth/outbound/authentication"
     };
-    private static final String[] PUBLIC_GET_ENDPOINTS = {"/actuator", "/actuator/*"};
+    private static final String[] PUBLIC_GET_ENDPOINTS = {"/actuator", "/actuator/**"};
 
     private final CustomJwtDecoder customJwtDecoder;
 

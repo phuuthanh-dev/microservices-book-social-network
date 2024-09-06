@@ -19,7 +19,7 @@ public class SecurityConfig {
     private static final String[] PUBLIC_POST_ENDPOINTS = {
             "/internal/users"
     };
-    private static final String[] PUBLIC_GET_ENDPOINTS = {"/actuator", "/actuator/*"};
+    private static final String[] PUBLIC_GET_ENDPOINTS = {"/actuator", "/actuator/**"};
 
     private final CustomJwtDecoder customJwtDecoder;
 

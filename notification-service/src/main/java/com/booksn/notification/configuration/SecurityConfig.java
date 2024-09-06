@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {"/email/send"};
-    private static final String[] PUBLIC_GET_ENDPOINTS = {"/actuator", "/actuator/*"};
+    private static final String[] PUBLIC_GET_ENDPOINTS = {"/actuator", "/actuator/**"};
 
     private final CustomJwtDecoder customJwtDecoder;
 

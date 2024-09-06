@@ -74,29 +74,6 @@ services:
     networks:
       - bsn-network
 
-  api-gateway:
-    image: phuuthanh2003/api-gateway:latest
-    container_name: api-gateway
-    ports:
-      - "8888:8080"
-    expose:
-      - "8888"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_APPLICATION_NAME=api-gateway
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
-    healthcheck:
-      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-    depends_on:
-      - eureka-server
-    networks:
-      - bsn-network
-
   identity-service:
     container_name: identity-service
     image: phuuthanh2003/identity-service:latest
@@ -105,8 +82,16 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/identity_service
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
-      - mysql
-      - api-gateway
+      mysql:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/identity/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - bsn-network
 
@@ -120,9 +105,16 @@ services:
       - SPRING_NEO4J_AUTHENTICATION_PASSWORD=12345678
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
-      - neo4j
-      - identity-service
-      - api-gateway
+      neo4j:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/profile/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - bsn-network
 
@@ -133,8 +125,16 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
-      - mongo
-      - api-gateway
+      mongo:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/post/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - bsn-network
 
@@ -145,9 +145,44 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
     depends_on:
-      - kafka
-      - mongo
-      - api-gateway
+      kafka:
+        condition: service_started
+      mongo:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/notification/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bsn-network
+
+  api-gateway:
+    image: phuuthanh2003/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8888:8080"
+    expose:
+      - "8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=api-gateway
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      identity-service:
+        condition: service_healthy
+      profile-service:
+        condition: service_healthy
+      post-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
     networks:
       - bsn-network
 

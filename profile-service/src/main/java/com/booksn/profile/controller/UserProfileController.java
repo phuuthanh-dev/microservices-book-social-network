@@ -2,6 +2,8 @@ package com.booksn.profile.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import com.booksn.profile.dto.ApiResponse;
@@ -16,6 +18,7 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserProfileController {
+    private static final Logger log = LoggerFactory.getLogger(UserProfileController.class);
     UserProfileService userProfileService;
 
     @GetMapping("/users/{profileId}")
@@ -27,6 +30,7 @@ public class UserProfileController {
 
     @GetMapping("/users")
     ApiResponse<List<UserProfileResponse>> getAllProfiles() {
+        log.info("Getting all profiles");
         return ApiResponse.<List<UserProfileResponse>>builder()
                 .result(userProfileService.getAllProfiles())
                 .build();
