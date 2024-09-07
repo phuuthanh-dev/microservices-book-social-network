@@ -1,0 +1,435 @@
+version: "3.8"
+services:
+  read:
+    image: grafana/loki:3.0.0
+    container_name: loki-read
+    command: "-config.file=/etc/loki/config.yaml -target=read"
+    ports:
+      - 3101:3100
+      - 7946
+      - 9095
+    volumes:
+      - ../observability/loki/loki-config.yaml:/etc/loki/config.yaml
+    depends_on:
+      - minio
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: &loki-dns
+      bsn-network:
+        aliases:
+          - loki
+
+  write:
+    image: grafana/loki:3.0.0
+    container_name: loki-write
+    command: "-config.file=/etc/loki/config.yaml -target=write"
+    ports:
+      - 3102:3100
+      - 7946
+      - 9095
+    volumes:
+      - ../observability/loki/loki-config.yaml:/etc/loki/config.yaml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - minio
+    networks:
+      <<: *loki-dns
+
+  alloy:
+    image: grafana/alloy:v1.0.0
+    container_name: alloy
+    volumes:
+      - ../observability/alloy/alloy-local-config.yaml:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    ports:
+      - 12345:12345
+    depends_on:
+      - gateway
+    networks:
+      - bsn-network
+
+  minio:
+    image: minio/minio:RELEASE.2024-05-27T19-17-46Z
+    container_name: minio
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && \
+        mkdir -p /data/loki-ruler && \
+        minio server /data
+    environment:
+      - MINIO_ROOT_USER=loki
+      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - 9000
+    volumes:
+      - ./.data/minio:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 15s
+      timeout: 20s
+      retries: 5
+    networks:
+      - bsn-network
+
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - bsn-network
+
+  tempo:
+    image: grafana/tempo:2.4.2
+    container_name: tempo
+    command: -config.file /etc/tempo-config.yml
+    ports:
+      - "3110:3100"
+      - "4317:4317"
+    volumes:
+      - ../observability/tempo/tempo.yml:/etc/tempo-config.yml
+    networks:
+      - bsn-network
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    depends_on:
+      - gateway
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        /run.sh
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bsn-network
+
+  backend:
+    image: grafana/loki:3.0.0
+    container_name: loki-backend
+    volumes:
+      - ../observability/loki/loki-config.yaml:/etc/loki/config.yaml
+    ports:
+      - "3100"
+      - "7946"
+    command: "-config.file=/etc/loki/config.yaml -target=backend -legacy-read-mode=false"
+    depends_on:
+      - gateway
+    networks:
+      - bsn-network
+
+  gateway:
+    image: nginx:1.25.5
+    container_name: gateway
+    depends_on:
+      - read
+      - write
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        cat <<EOF > /etc/nginx/nginx.conf
+        user  nginx;
+        worker_processes  5;  ## Default: 1
+        
+        events {
+          worker_connections   1000;
+        }
+        
+        http {
+          resolver 127.0.0.11;
+        
+          server {
+            listen             3100;
+        
+            location = / {
+              return 200 'OK';
+              auth_basic off;
+            }
+        
+            location = /api/prom/push {
+              proxy_pass       http://write:3100\$$request_uri;
+            }
+        
+            location = /api/prom/tail {
+              proxy_pass       http://read:3100\$$request_uri;
+              proxy_set_header Upgrade \$$http_upgrade;
+              proxy_set_header Connection "upgrade";
+            }
+        
+            location ~ /api/prom/.* {
+              proxy_pass       http://read:3100\$$request_uri;
+            }
+        
+            location = /loki/api/v1/push {
+              proxy_pass       http://write:3100\$$request_uri;
+            }
+        
+            location = /loki/api/v1/tail {
+              proxy_pass       http://read:3100\$$request_uri;
+              proxy_set_header Upgrade \$$http_upgrade;
+              proxy_set_header Connection "upgrade";
+            }
+        
+            location ~ /loki/api/.* {
+              proxy_pass       http://read:3100\$$request_uri;
+            }
+          }
+        }
+        EOF
+        /docker-entrypoint.sh nginx -g "daemon off;"
+    ports:
+      - "3100:3100"
+    healthcheck:
+      test: [ "CMD", "service", "nginx", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bsn-network
+
+  kafka:
+    container_name: kafka
+    image: 'bitnami/kafka:3.7.0'
+    ports:
+      - '9094:9094'
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    networks:
+      - bsn-network
+
+  ## Mongo Docker Compose Config
+  mongo:
+    container_name: mongo
+    image: bitnami/mongodb:7.0.11
+    restart: always
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - bsn-network
+
+  ## MySQL Docker Compose Config
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: identity_service
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - bsn-network
+
+  ## Neo4j Docker Compose Config
+  neo4j:
+    container_name: neo4j
+    image: neo4j:5.1
+    environment:
+      NEO4J_AUTH: neo4j/12345678
+    ports:
+      - "7474:7474"  # Neo4j Browser HTTP
+      - "7687:7687"  # Bolt protocol
+    volumes:
+      - neo4j-data:/var/lib/neo4j/data
+    networks:
+      - bsn-network
+
+  eureka-server:
+    image: "phuuthanh2003/eureka-server:latest"
+    container_name: eureka-server
+    ports:
+      - "8070:8070"
+    environment:
+      - SPRING_APPLICATION_NAME=eureka-server
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/libs/opentelemetry-javaagent-1.33.5.jar
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_SERVICE_NAME=eureka-server
+    healthcheck:
+      test: "curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bsn-network
+
+  identity-service:
+    container_name: identity-service
+    image: phuuthanh2003/identity-service:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/identity_service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/libs/opentelemetry-javaagent-1.33.5.jar
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_SERVICE_NAME=identity-service
+    depends_on:
+      mysql:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/identity/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bsn-network
+
+  profile-service:
+    container_name: profile-service
+    image: phuuthanh2003/profile-service:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_NEO4J_URI=bolt://neo4j:7687
+      - SPRING_NEO4J_AUTHENTICATION_USERNAME=neo4j
+      - SPRING_NEO4J_AUTHENTICATION_PASSWORD=12345678
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/libs/opentelemetry-javaagent-1.33.5.jar
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_SERVICE_NAME=profile-service
+    depends_on:
+      neo4j:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/profile/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bsn-network
+
+  post-service:
+    container_name: post-service
+    image: phuuthanh2003/post-service:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/libs/opentelemetry-javaagent-1.33.5.jar
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_SERVICE_NAME=post-service
+    depends_on:
+      mongo:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/post/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bsn-network
+
+  notification-service:
+    container_name: notification-service
+    image: phuuthanh2003/notification-service:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/libs/opentelemetry-javaagent-1.33.5.jar
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_SERVICE_NAME=notification-service
+    depends_on:
+      kafka:
+        condition: service_started
+      mongo:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/notification/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - bsn-network
+
+  api-gateway:
+    image: phuuthanh2003/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8888:8080"
+    expose:
+      - "8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=api-gateway
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8070/eureka/
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/libs/opentelemetry-javaagent-1.33.5.jar
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_SERVICE_NAME=api-gateway
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      identity-service:
+        condition: service_healthy
+      profile-service:
+        condition: service_healthy
+      post-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - bsn-network
+
+networks:
+  bsn-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  neo4j-data:
+  mongo-data:

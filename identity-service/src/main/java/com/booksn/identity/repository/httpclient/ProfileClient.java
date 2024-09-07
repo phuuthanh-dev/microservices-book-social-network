@@ -2,6 +2,7 @@ package com.booksn.identity.repository.httpclient;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -16,4 +17,7 @@ import com.booksn.identity.dto.response.UserProfileResponse;
 public interface ProfileClient {
     @PostMapping(value = "/profile/internal/users", produces = MediaType.APPLICATION_JSON_VALUE)
     ApiResponse<UserProfileResponse> createProfile(@RequestBody ProfileCreationRequest request);
+
+    @GetMapping(value = "/profile/users/my-profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    ApiResponse<UserProfileResponse> getMyProfile();
 }

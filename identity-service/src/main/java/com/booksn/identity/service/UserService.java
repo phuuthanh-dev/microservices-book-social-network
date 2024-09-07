@@ -3,6 +3,7 @@ package com.booksn.identity.service;
 import java.util.HashSet;
 import java.util.List;
 
+import com.booksn.identity.dto.response.UserProfileResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -102,7 +103,10 @@ public class UserService {
 
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+        UserProfileResponse profile = profileClient.getMyProfile().getResult();
+
         var userResponse = userMapper.toUserResponse(user);
+        userResponse.setProfile(profile);
         userResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));
 
         return userResponse;

@@ -65,7 +65,6 @@ export default function Profile() {
     try {
       const response = await getMyInfo();
       const data = response.data;
-
       setUserDetails(data.result);
     } catch (error) {
       if (error.response.status === 401) {
@@ -74,6 +73,7 @@ export default function Profile() {
       }
     }
   };
+  
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -126,7 +126,7 @@ export default function Profile() {
               }}
             >
               Welcome back to Book Social Network ,{" "}
-              {`${userDetails.firstName} ${userDetails.lastName}`}!
+              {`${userDetails?.profile?.firstName} ${userDetails?.profile?.lastName}`}!
             </Typography>
             <Box
               sx={{
@@ -175,7 +175,7 @@ export default function Profile() {
                   fontSize: 14,
                 }}
               >
-                {userDetails.firstName}
+                {userDetails?.profile?.firstName}
               </Typography>
             </Box>
             <Box
@@ -200,7 +200,7 @@ export default function Profile() {
                   fontSize: 14,
                 }}
               >
-                {userDetails.lastName}
+                {userDetails?.profile?.lastName}
               </Typography>
             </Box>
             <Box
@@ -225,7 +225,7 @@ export default function Profile() {
                   fontSize: 14,
                 }}
               >
-                {userDetails.dob}
+                {userDetails?.profile?.dob}
               </Typography>
             </Box>
 

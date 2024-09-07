@@ -30,6 +30,9 @@ management:
   info:
     env:
       enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 eureka:
   instance:
@@ -45,3 +48,11 @@ info:
     name: "profile-service"
     description: "Profile Service Application"
     version: "1.0.0"
+
+logging:
+  level:
+    com:
+      booksn:
+        profile: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"

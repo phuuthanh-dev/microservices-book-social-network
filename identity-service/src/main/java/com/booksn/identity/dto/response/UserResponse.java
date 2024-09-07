@@ -17,4 +17,5 @@ public class UserResponse {
     boolean emailVerified;
     boolean noPassword;
     Set<RoleResponse> roles;
+    UserProfileResponse profile;
 }

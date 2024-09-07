@@ -32,6 +32,9 @@ management:
   info:
     env:
       enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 eureka:
   instance:
@@ -47,6 +50,14 @@ info:
     name: "api-gateway"
     description: "API Gateway Application"
     version: "1.0.0"
+
+logging:
+  level:
+    com:
+      booksn:
+        gateway: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
 
 resilience4j.circuitbreaker:
   configs:

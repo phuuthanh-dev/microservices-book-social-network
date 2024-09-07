@@ -1,0 +1,41 @@
+global:
+  scrape_interval:     5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'identity_service'
+    metrics_path: '/identity/actuator/prometheus'
+    static_configs:
+      - targets: ['identity-service:8080']
+        labels:
+          application: 'Identity Service Application'
+  - job_name: 'profile_service'
+    metrics_path: '/profile/actuator/prometheus'
+    static_configs:
+      - targets: ['profile-service:8080']
+        labels:
+          application: 'Profile Service Application'
+  - job_name: 'notification_service'
+    metrics_path: '/notification/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8080']
+        labels:
+          application: 'Notification Service Application'
+  - job_name: 'post_service'
+    metrics_path: '/post/actuator/prometheus'
+    static_configs:
+      - targets: ['post-service:8080']
+        labels:
+          application: 'Post Service Application'
+  - job_name: 'api_gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:8080']
+        labels:
+          application: 'API Gateway Application'
+  - job_name: 'eureka_server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['eureka-server:8070']
+        labels:
+          application: 'Eureka Server Application'

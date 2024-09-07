@@ -57,9 +57,10 @@ public class UserController {
 
     @GetMapping("/my-info")
     ApiResponse<UserResponse> getMyInfo() {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.getMyInfo())
-                .build();
+        log.debug("getMyInfo method start");
+        UserResponse userResponse = userService.getMyInfo();
+        log.debug("getMyInfo method end");
+        return ApiResponse.<UserResponse>builder().result(userResponse).build();
     }
 
     @DeleteMapping("/{userId}")

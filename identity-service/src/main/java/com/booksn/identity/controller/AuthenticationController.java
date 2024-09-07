@@ -14,11 +14,13 @@ import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class AuthenticationController {
     AuthenticationService authenticationService;
 
@@ -30,7 +32,9 @@ public class AuthenticationController {
 
     @PostMapping("/token")
     ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+        log.debug("authenticate method start");
         var result = authenticationService.authenticate(request);
+        log.debug("authenticate method end");
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
 
