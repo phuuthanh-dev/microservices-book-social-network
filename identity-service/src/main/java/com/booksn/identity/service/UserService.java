@@ -3,13 +3,14 @@ package com.booksn.identity.service;
 import java.util.HashSet;
 import java.util.List;
 
-import com.booksn.identity.dto.response.UserProfileResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.booksn.event.dto.NotificationEvent;
@@ -42,10 +43,12 @@ public class UserService {
     RoleRepository roleRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
+    @Qualifier("com.booksn.identity.repository.httpclient.ProfileClient")
     ProfileClient profileClient;
     ProfileMapper profileMapper;
     KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Transactional
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
 
@@ -68,7 +71,11 @@ public class UserService {
         profileRequest.setUserId(user.getId());
 
         var profile = profileClient.createProfile(profileRequest);
+        if (null == profile || null == profile.getResult()) {
+            throw new AppException(ErrorCode.PROFILE_CREATION_FAILED);
+        }
 
+        // Send message to Kafka
         NotificationEvent notificationEvent = NotificationEvent.builder()
                 .channel("EMAIL")
                 .recipient(request.getEmail())
@@ -76,7 +83,6 @@ public class UserService {
                 .body("Welcome " + request.getUsername() + " to our system")
                 .build();
 
-        // Send message to Kafka
         kafkaTemplate.send("notification-delivery", notificationEvent);
 
         var userCreationResponse = userMapper.toUserResponse(user);
@@ -103,10 +109,13 @@ public class UserService {
 
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        UserProfileResponse profile = profileClient.getMyProfile().getResult();
-
         var userResponse = userMapper.toUserResponse(user);
-        userResponse.setProfile(profile);
+
+        var userProfileResponse = profileClient.getMyProfile();
+        if (null != userProfileResponse) {
+            userResponse.setProfile(userProfileResponse.getResult());
+        }
+
         userResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));
 
         return userResponse;

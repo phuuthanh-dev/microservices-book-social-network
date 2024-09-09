@@ -1,9 +1,6 @@
 package com.booksn.profile.controller;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.booksn.profile.dto.ApiResponse;
 import com.booksn.profile.dto.request.ProfileCreationRequest;
@@ -25,6 +22,13 @@ public class InternalUserProfileController {
     ApiResponse<UserProfileResponse> createProfile(@RequestBody ProfileCreationRequest request) {
         return ApiResponse.<UserProfileResponse>builder()
                 .result(userProfileService.createProfile(request))
+                .build();
+    }
+
+    @GetMapping("/users/{userId}")
+    ApiResponse<UserProfileResponse> getProfile(@PathVariable String userId) {
+        return ApiResponse.<UserProfileResponse>builder()
+                .result(userProfileService.getByUserId(userId))
                 .build();
     }
 }

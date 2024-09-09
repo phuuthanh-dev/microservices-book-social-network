@@ -13,6 +13,7 @@ import com.booksn.identity.dto.response.UserProfileResponse;
 
 @FeignClient(
         name = "profile-service",
+        fallback = ProfileFallback.class,
         configuration = {AuthenticationRequestInterceptor.class})
 public interface ProfileClient {
     @PostMapping(value = "/profile/internal/users", produces = MediaType.APPLICATION_JSON_VALUE)

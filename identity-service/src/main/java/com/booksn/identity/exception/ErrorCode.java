@@ -19,6 +19,7 @@ public enum ErrorCode {
     EMAIL_IS_REQUIRED(1009, "Email is required", HttpStatus.BAD_REQUEST),
     INVALID_CREDENTIALS(1009, "Invalid credentials, please try again.", HttpStatus.BAD_REQUEST),
     PASSWORD_EXISTED(1010, "Password existed", HttpStatus.BAD_REQUEST),
+    PROFILE_CREATION_FAILED(1011, "Profile creation failed", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
